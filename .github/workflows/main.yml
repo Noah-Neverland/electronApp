@@ -53,9 +53,9 @@ jobs:
           yarn
           yarn global add xvfb-maybe
           yarn global add @vue/cli
-      # step5: 构建发布  
+      # step5: 构建发布
       - name: Build  & release app
         run: |
-          npm run release
+          npm run make
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
