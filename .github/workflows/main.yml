@@ -47,13 +47,7 @@ jobs:
           sudo apt-get install libxtst-dev libpng++-dev
           sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
           sudo snap install snapcraft --classic
-      # step4: yarn
-      - name: Yarn install
-        run: |
-          yarn
-          yarn global add xvfb-maybe
-          yarn global add @vue/cli
-      # step5: 构建发布
+      # step4: 构建发布
       - name: Build  & release app
         run: |
           npm run make
