@@ -1,61 +1,56 @@
-# .github/workflows/main.yml
-# Workflow 的名称
-name: Build
+name: Build/release Electron app
 
-# Workflow 的触发条件
 on:
   push:
-    branches:
+    tags:
       - master
 
-# Workflow 的 jobs
 jobs:
   release:
-    # job 的 名称
-    name: build and release electron app
-
-    # 运行平台，取自 strategy 中的 matrix
     runs-on: ${{ matrix.os }}
 
-    # create a build matrix for jobs
     strategy:
-      fail-fast: false
       matrix:
-        # 执行的操作系统
-        os: [macos-11, windows-2019]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
-    # 创建 steps 代码库
     steps:
-      # 引用一些 actions
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      # step1: check out repository
-      - name: Check out git repository
-        uses: actions/checkout@v2
+      - name: Check out Git repository
+        uses: actions/checkout@v3
 
-      # step2: 安装 nodejs 环境
       - name: Install Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 20.x
-      # step3: 安装特殊环境依赖项
-      - name: Install system deps
+          node-version: 16
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: build-linux
         if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get install libxtst-dev libpng++-dev
-          sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
-          sudo snap install snapcraft --classic
-      # step4: yarn
-      - name: Yarn install
-        run: |
-          yarn
-          yarn global add @electron-forge/cli
-          npx electron-forge import
-      # step5: 构建发布
-      - name: Build  & release app
-        run: |
-          npm run make
+        run: npm run build:linux
+
+      - name: build-mac
+        if: matrix.os == 'macos-latest'
+        run: npm run build:mac
+
+      - name: build-win
+        if: matrix.os == 'windows-latest'
+        run: npm run build:win
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.snap
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.yml
+            dist/*.blockmap
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
